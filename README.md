@@ -19,6 +19,7 @@
 ```
 创建配置文件jfinal.properties,参考源码的中的jfinal.properties文件。（如果想用其他文件名，需要new DubboPlugin("your file name")）
 在JfinalConfig添加插件`Plugins.add(new DubboPlugin())`;
+
 2.在需要暴露的服务上面使用`@RpcService`注解
 ```
     @RpcService(group="simple", version="1.0", stub="true", mock="true")
