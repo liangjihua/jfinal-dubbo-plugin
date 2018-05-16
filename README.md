@@ -42,6 +42,7 @@
     }
 ```
 使用注解需要在JfinalConfig中配置`Constants.controllerFactory(new ReferenceServiceAutowiredControllerFactory());
+
 4.以容器运行
 大多数情况下Rpc远程服务不需要mvc层，如果部署在web容器中会比较浪费。dubbo 提供了 container去启动一个服务进程提供服务。
 dubbo默认实现了spring 引导的container，这里提供了一个jfinal的实现。
