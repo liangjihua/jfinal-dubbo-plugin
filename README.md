@@ -1,23 +1,50 @@
 # jfinal-dubbo-plugin
 
 #### 项目介绍
-一个jfinal的dubbo插件
-
-#### 软件架构
-软件架构说明
-
+一个jfinal的dubbo插件，使用dubbo api集成，不需要引入spring。
 
 #### 安装教程
 
-1. xxxx
-2. xxxx
-3. xxxx
+从https://gitee.com/YouYiGeXinShou/jfinal-dubbo-plugin/ 克隆或下载源码包
+运行maven clean install
 
 #### 使用说明
+1.引入jar
+```
+<dependency>
+	<groupId>top.yujiaxin</groupId>
+	<artifactId>jfinal-dubbo-plugin</artifactId>
+	<version>1.0.1</version>
+</dependency>
+```
+创建配置文件jfinal.properties,参考源码的中的jfinal.properties文件。（如果想用其他文件名，需要new DubboPlugin("your file name")）
+在JfinalConfig添加插件`Plugins.add(new DubboPlugin())`;
+2.在需要暴露的服务上面使用`@RpcService`注解
+```
+    @RpcService(group="simple", version="1.0", stub="true", mock="true")
+    public class MyServiceImpl implements MyService{
+        //TODO 
+    }
 
-1. xxxx
-2. xxxx
-3. xxxx
+```
+3.引用远程服务
+```
+    MyService myService=DubboRpc.receiveService(MyService.class);
+```
+在controller中引用远程服务可使用`@ReferenceService`注解
+```
+    public class MyController extends Controller{
+        
+            @ReferenceService(group="simple", version="1.0")
+            private MyService myService;
+            //TODO
+    }
+```
+使用注解需要在JfinalConfig中配置`Constants.controllerFactory(new ReferenceServiceAutowiredControllerFactory());
+4.以容器运行
+大多数情况下Rpc远程服务不需要mvc层，如果部署在web容器中会比较浪费。dubbo 提供了 container去启动一个服务进程提供服务。
+dubbo默认实现了spring 引导的container，这里提供了一个jfinal的实现。
+使用 `java com.alibaba.dubbo.container.Main jfinalContainer`启动一个jfinalContainer
 
 #### 参与贡献
 
@@ -26,12 +53,3 @@
 3. 提交代码
 4. 新建 Pull Request
 
-
-#### 码云特技
-
-1. 使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2. 码云官方博客 [blog.gitee.com](https://blog.gitee.com)
-3. 你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解码云上的优秀开源项目
-4. [GVP](https://gitee.com/gvp) 全称是码云最有价值开源项目，是码云综合评定出的优秀开源项目
-5. 码云官方提供的使用手册 [http://git.mydoc.io/](http://git.mydoc.io/)
-6. 码云封面人物是一档用来展示码云会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
