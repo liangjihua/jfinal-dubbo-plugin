@@ -13,6 +13,9 @@ import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.alibaba.dubbo.config.ApplicationConfig;
 import com.alibaba.dubbo.config.ProtocolConfig;
 import com.alibaba.dubbo.config.ProviderConfig;
@@ -29,6 +32,7 @@ import top.yujiaxin.jfinalplugin.dubbo.annotation.RpcService;
 import top.yujiaxin.jfinalplugin.dubbo.exception.RpcServiceReferenceException;
 
 public class DubboRpc {
+	private static final Logger logger=LoggerFactory.getLogger(DubboRpc.class);
 	
 	private static ApplicationConfig applicationConfig=new ApplicationConfig();
 	
@@ -93,6 +97,7 @@ public class DubboRpc {
 		ReferenceConfig<T> referenceConfig = buildReferenceConfig(interfaceClass, config);
 		service=referenceConfig.get();
 		if(service==null){
+			logger.error("Did not get rpc service：{}",interfaceClass.getName());
 			throw new RpcServiceReferenceException("Did not get rpc:"+interfaceClass.getName());
 		}
 		serviceCache.put(interfaceClass.getSimpleName()+":"+JsonKit.toJson(config), service);
@@ -111,6 +116,7 @@ public class DubboRpc {
 			if(rpcService==null)continue;
 			Class[] interfaces = cl.getInterfaces();
 			if(interfaces==null||!(interfaces.length>0)){
+				logger.error("RpcService must implements a interface");
 				throw new RpcServiceReferenceException("RpcService must implements a interface");
 			}
 			for (Class in : interfaces) {

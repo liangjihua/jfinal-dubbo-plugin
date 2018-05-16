@@ -1,4 +1,4 @@
-package top.yujiaxin.jfinalplugin.dubbo;
+package top.yujiaxin.jfinalplugin.dubbo.core;
 
 import java.io.IOException;
 
@@ -8,15 +8,17 @@ import com.jfinal.kit.PropKit;
 import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.IPlugin;
 
-import top.yujiaxin.jfinalplugin.dubbo.core.DubboRpc;
 import top.yujiaxin.jfinalplugin.dubbo.exception.DubboConfigException;
 
 public class DubboPlugin implements IPlugin {
 
 	private Prop prop;
 	public DubboPlugin(String fileName){
-		prop=PropKit.use(fileName);
-		
+		if(StrKit.notBlank(fileName)){
+			prop=PropKit.use(fileName);
+		}else{
+			prop=PropKit.use("jfinal.properties");
+		}
 	}
 	
 	@Override
