@@ -13,12 +13,21 @@ import top.yujiaxin.jfinalplugin.dubbo.exception.DubboConfigException;
 public class DubboPlugin implements IPlugin {
 
 	private Prop prop;
+	/**
+	 * 使用无参构造，使用jfinal.properties作为你的配置文件名，可以更便捷的使用dubbo容器功能
+	 * @param fileName
+	 */
+	@Deprecated
 	public DubboPlugin(String fileName){
 		if(StrKit.notBlank(fileName)){
 			prop=PropKit.use(fileName);
 		}else{
 			prop=PropKit.use("jfinal.properties");
 		}
+	}
+	
+	public DubboPlugin(){
+		prop=PropKit.use("jfinal.properties");
 	}
 	
 	@Override
