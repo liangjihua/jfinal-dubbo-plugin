@@ -46,6 +46,7 @@
 4.以容器运行
 大多数情况下Rpc远程服务不需要mvc层，如果部署在web容器中会比较浪费。dubbo 提供了 container去启动一个服务进程提供服务。
 dubbo默认实现了spring 引导的container，这里提供了一个jfinal的实现。
+在jfinal.properties里加入`configClass=com.demo.YourJfinalConfig`
 使用 `java com.alibaba.dubbo.container.Main jfinalContainer`启动一个jfinalContainer
 
 #### 参与贡献
