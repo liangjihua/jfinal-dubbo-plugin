@@ -12,10 +12,10 @@ import com.jfinal.kit.PropKit;
 
 public class JfinalContainer implements Container {
 	private static final Logger logger=LoggerFactory.getLogger(JfinalContainer.class);
-	private static final Constants constants = new Constants();
-	private static final Plugins plugins = new Plugins();
-	private static final Interceptors interceptors = new Interceptors();
-	private static final JFinalConfig jfianlConfig= getJfinalConfig();
+	private Constants constants = new Constants();
+	private Plugins plugins = new Plugins();
+	private Interceptors interceptors = new Interceptors();
+	private JFinalConfig jfianlConfig= getJfinalConfig();
 	@Override
 	public void start() {
 		jfianlConfig.configConstant(constants);
@@ -31,7 +31,7 @@ public class JfinalContainer implements Container {
 		jfianlConfig.beforeJFinalStop();
 		stopPulgins();
 	}
-	private static void startPulgins(){
+	private  void startPulgins(){
 		plugins.getPluginList().stream().forEach(plugin->{
 			try {
 				// process ActiveRecordPlugin devMode
@@ -56,7 +56,7 @@ public class JfinalContainer implements Container {
 		});
 	}
 	
-	private static void stopPulgins(){
+	private void stopPulgins(){
 		plugins.getPluginList().stream().forEach(plugin->{
 			try {
 				plugin.stop();
