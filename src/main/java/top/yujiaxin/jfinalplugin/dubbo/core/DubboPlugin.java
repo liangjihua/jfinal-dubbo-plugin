@@ -26,6 +26,10 @@ public class DubboPlugin implements IPlugin {
 		}
 	}
 	
+	public DubboPlugin(Prop prop){
+		this.prop=prop;
+	}
+	
 	public DubboPlugin(){
 		prop=PropKit.use("jfinal.properties");
 	}
