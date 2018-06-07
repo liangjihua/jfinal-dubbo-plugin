@@ -98,12 +98,6 @@ public class DubboRpc {
 	@SuppressWarnings("unchecked")
 	public static <T> T receiveService(Class<T> interfaceClass,Map<String,String> config) {
 		String configKey = JsonKit.toJson(config);
-		if(initLoad){
-			 T initService = (T) serviceCache.get(interfaceClass.getSimpleName()+":"+configKey);
-			 if(initService != null){
-				 return initService;
-			 }
-		}
 		T service=(T) serviceCache.get(interfaceClass.getSimpleName()+":"+configKey);
 		if(service!=null){
 			return service;
