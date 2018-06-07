@@ -2,6 +2,7 @@ package top.yujiaxin.jfinalplugin.dubbo.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.JarURLConnection;
 import java.net.URL;
@@ -16,6 +17,10 @@ import java.util.jar.JarFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import top.yujiaxin.jfinalplugin.dubbo.annotation.ReferenceService;
+import top.yujiaxin.jfinalplugin.dubbo.annotation.RpcService;
+import top.yujiaxin.jfinalplugin.dubbo.exception.RpcServiceReferenceException;
+
 import com.alibaba.dubbo.config.ApplicationConfig;
 import com.alibaba.dubbo.config.ProtocolConfig;
 import com.alibaba.dubbo.config.ProviderConfig;
@@ -27,9 +32,6 @@ import com.jfinal.kit.JsonKit;
 import com.jfinal.kit.PathKit;
 import com.jfinal.kit.Prop;
 import com.jfinal.kit.StrKit;
-
-import top.yujiaxin.jfinalplugin.dubbo.annotation.RpcService;
-import top.yujiaxin.jfinalplugin.dubbo.exception.RpcServiceReferenceException;
 
 public class DubboRpc {
 	private static final Logger logger=LoggerFactory.getLogger(DubboRpc.class);
@@ -47,6 +49,8 @@ public class DubboRpc {
 	private static String dubbo_base_package = "";
 	
 	private static ProviderConfig providerConfig=new ProviderConfig();
+	
+	private static Boolean initLoad = false;
 	
 	private DubboRpc(){};
 	
@@ -75,6 +79,9 @@ public class DubboRpc {
 		 if(StrKit.notBlank(prop.get("dubbo_base_package"))){
 			 dubbo_base_package=prop.get("dubbo_base_package");
 		 }
+		 if(StrKit.notBlank(prop.get("initLoad"))){
+			 initLoad =  prop.getBoolean("initLoad");
+		 }
 	}
 	
 	public static <T> T receiveService(Class<T> interfaceClass){
@@ -90,7 +97,8 @@ public class DubboRpc {
 	
 	@SuppressWarnings("unchecked")
 	public static <T> T receiveService(Class<T> interfaceClass,Map<String,String> config) {
-		T service=(T) serviceCache.get(interfaceClass.getSimpleName()+":"+JsonKit.toJson(config));
+		String configKey = JsonKit.toJson(config);
+		T service=(T) serviceCache.get(interfaceClass.getSimpleName()+":"+configKey);
 		if(service!=null){
 			return service;
 		}
@@ -100,7 +108,7 @@ public class DubboRpc {
 			logger.error("Did not get rpc service：{}",interfaceClass.getName());
 			throw new RpcServiceReferenceException("Did not get rpc:"+interfaceClass.getName());
 		}
-		serviceCache.put(interfaceClass.getSimpleName()+":"+JsonKit.toJson(config), service);
+		serviceCache.put(interfaceClass.getSimpleName()+":"+configKey, service);
 		return service;
 	}
 	
@@ -112,6 +120,24 @@ public class DubboRpc {
 			if (cl.isInterface() || Modifier.isAbstract(cl.getModifiers())) {
                 continue;
             }
+			if(initLoad){
+				Field[] fields = cl.getDeclaredFields();  
+		        for(Field f : fields){  
+		            if(f.getName().endsWith("Service")){  
+		                ReferenceService referenceService=(ReferenceService) f.getAnnotation(ReferenceService.class);
+		                if(referenceService==null)continue;
+		                String configKey = JsonKit.toJson(buildPara(referenceService)); 
+		                if(serviceCache.get(f.getType().getSimpleName()+":"+configKey) != null)continue;
+		    			ReferenceConfig<T> referenceConfig = buildServiceConfig(f.getType(), referenceService);
+		    			T service=referenceConfig.get();
+		    			if(service==null){
+		    				logger.error("Did not get rpc service：{}",f.getName());
+		    				throw new RpcServiceReferenceException("Did not get rpc:"+f.getName());
+		    			}
+		    			serviceCache.put(f.getType().getSimpleName()+":"+configKey, service);
+		            }  
+		        }
+			}
 			RpcService rpcService=(RpcService) cl.getAnnotation(RpcService.class);
 			if(rpcService==null)continue;
 			Class[] interfaces = cl.getInterfaces();
@@ -127,7 +153,7 @@ public class DubboRpc {
 		}
 		
 	}
-	
+
 	public static <T> ReferenceConfig<T> buildReferenceConfig(Class<T> interfaceClass, Map<String, String> config) {
 		ReferenceConfig<T> referenceConfig=new ReferenceConfig<T>();
 		referenceConfig.setApplication(applicationConfig);
@@ -323,4 +349,107 @@ public class DubboRpc {
             }
         }
 	}
+	
+	public static Map<String,String> buildPara(ReferenceService reService) {
+		Map<String,String> config=new HashMap<String,String>();
+		config.put("version", reService.version());
+		config.put("group", reService.group());
+		config.put("retries",String.valueOf(reService.retries()));
+		config.put("cluster", reService.cluster().toString().toLowerCase());
+		config.put("stub", reService.stub());
+		config.put("mock", reService.mock());
+		config.put("loadbalance", reService.loadbalance().toString().toLowerCase());
+		config.put("timeout", String.valueOf(reService.timeout()));
+		config.put("connections", String.valueOf(reService.connections()));
+		config.put("async", String.valueOf(reService.async()));
+		config.put("generic", String.valueOf(reService.generic()));
+		config.put("check", String.valueOf(reService.check()));
+		config.put("url", reService.url());
+		config.put("cache", reService.cache());
+		config.put("validation", String.valueOf(reService.validation()));
+		config.put("proxy", reService.proxy());
+		config.put("client", reService.client());
+		config.put("owner", reService.owner());
+		config.put("actives", String.valueOf(reService.actives()));
+		config.put("filter", reService.filter());
+		config.put("listener", reService.listener());
+		config.put("layer", reService.layer());
+		config.put("init", String.valueOf(reService.init()));
+		config.put("protocol", reService.protocol());
+		return config;
+	}
+	
+	public static <T> ReferenceConfig<T> buildServiceConfig(Class<?> cl,
+			ReferenceService referenceService)
+			throws InstantiationException, IllegalAccessException {
+		ReferenceConfig<T> referenceConfig=new ReferenceConfig<T>();
+		referenceConfig.setApplication(applicationConfig);
+		referenceConfig.setRegistry(registryConfig);
+		referenceConfig.setInterface(cl);
+		if(StrKit.notBlank(referenceService.group())){
+			referenceConfig.setGroup(referenceService.group());
+		}
+		if(StrKit.notBlank(referenceService.version())){
+			referenceConfig.setVersion(referenceService.version());
+		}
+		if(StrKit.notBlank(referenceService.cache())){
+			referenceConfig.setCache(referenceService.cache());
+		}
+		if(StrKit.notBlank(String.valueOf(referenceService.check()))){
+			referenceConfig.setCheck(Boolean.valueOf(referenceService.check()));
+		}
+		if(StrKit.notBlank(String.valueOf(referenceService.retries()))){
+			referenceConfig.setRetries(Integer.valueOf(referenceService.retries()));
+		}
+		if(StrKit.notBlank(referenceService.stub())){
+			referenceConfig.setStub(referenceService.stub());
+		}
+		if(StrKit.notBlank(referenceService.mock())){
+			referenceConfig.setMock(referenceService.mock());
+		}
+		if(StrKit.notBlank(String.valueOf(referenceService.timeout()))){
+			referenceConfig.setTimeout(Integer.valueOf(referenceService.timeout()));
+		}
+		if(StrKit.notBlank(String.valueOf(referenceService.connections()))){
+			referenceConfig.setConnections(Integer.valueOf(referenceService.connections()));
+		}
+		if(StrKit.notBlank(String.valueOf(referenceService.async()))){
+			referenceConfig.setAsync(Boolean.valueOf(referenceService.async()));
+		}
+		if(StrKit.notBlank(String.valueOf(referenceService.generic()))){
+			referenceConfig.setGeneric(referenceService.generic());
+		}
+		if(StrKit.notBlank(referenceService.url())){
+			referenceConfig.setUrl(referenceService.url());
+		}
+		if(StrKit.notBlank(referenceService.proxy())){
+			referenceConfig.setProxy(referenceService.proxy());
+		}
+		if(StrKit.notBlank(referenceService.client())){
+			referenceConfig.setClient(referenceService.client());
+		}
+		if(StrKit.notBlank(referenceService.owner())){
+			referenceConfig.setOwner(referenceService.owner());
+		}
+		if(StrKit.notBlank(String.valueOf(referenceService.actives()))){
+			referenceConfig.setActives(Integer.valueOf(referenceService.actives()));
+		}
+		if(StrKit.notBlank(referenceService.filter())){
+			referenceConfig.setFilter(referenceService.filter());
+		}
+		if(StrKit.notBlank(referenceService.listener())){
+			referenceConfig.setListener(referenceService.listener());
+		}
+		if(StrKit.notBlank(referenceService.layer())){
+			referenceConfig.setLayer(referenceService.layer());
+		}
+		if(StrKit.notBlank(String.valueOf(referenceService.init()))){
+			referenceConfig.setInit(Boolean.valueOf(referenceService.init()));
+		}
+		if(StrKit.notBlank(referenceService.protocol())){
+			referenceConfig.setProtocol(referenceService.protocol());
+		}
+		return referenceConfig;
+	}
+	
 }
