@@ -2,13 +2,13 @@ package top.yujiaxin.jfinalplugin.dubbo.core;
 
 import java.io.IOException;
 
+import top.yujiaxin.jfinalplugin.dubbo.exception.DubboConfigException;
+
 import com.alibaba.dubbo.config.ProtocolConfig;
 import com.jfinal.kit.Prop;
 import com.jfinal.kit.PropKit;
 import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.IPlugin;
-
-import top.yujiaxin.jfinalplugin.dubbo.exception.DubboConfigException;
 
 public class DubboPlugin implements IPlugin {
 
@@ -45,10 +45,11 @@ public class DubboPlugin implements IPlugin {
 		 if(StrKit.isBlank(prop.get("protocolName"))){
 			throw new DubboConfigException("this application must have a prorocol name");
 		 }
+		 
 		 DubboRpc.init(prop);
 		 try {
-				 DubboRpc.exportServices();
-				 return true;
+			DubboRpc.exportServices();
+			return true;
 		} catch (ClassNotFoundException e) {
 			//TODO 异常处理
 			e.printStackTrace();
