@@ -128,7 +128,7 @@ public class DubboRpc {
 		                if(referenceService==null)continue;
 		                String configKey = JsonKit.toJson(buildPara(referenceService)); 
 		                if(serviceCache.get(f.getType().getSimpleName()+":"+configKey) != null)continue;
-		    			ReferenceConfig<T> referenceConfig = buildServiceConfig(f.getType(), referenceService);
+		    			ReferenceConfig<T> referenceConfig = buildReferenceConfig(f.getType(), referenceService);
 		    			T service=referenceConfig.get();
 		    			if(service==null){
 		    				logger.error("Did not get rpc service：{}",f.getName());
@@ -379,7 +379,7 @@ public class DubboRpc {
 		return config;
 	}
 	
-	public static <T> ReferenceConfig<T> buildServiceConfig(Class<?> cl,
+	public static <T> ReferenceConfig<T> buildReferenceConfig(Class<?> cl,
 			ReferenceService referenceService)
 			throws InstantiationException, IllegalAccessException {
 		ReferenceConfig<T> referenceConfig=new ReferenceConfig<T>();
