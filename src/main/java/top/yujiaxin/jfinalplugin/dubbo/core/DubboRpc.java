@@ -159,6 +159,9 @@ public class DubboRpc {
 		referenceConfig.setApplication(applicationConfig);
 		referenceConfig.setRegistry(registryConfig);
 		referenceConfig.setInterface(interfaceClass);
+		if(StrKit.notBlank(config.get("interfaceName"))){
+			referenceConfig.setInterface(config.get("interfaceName"));
+		}
 		if(StrKit.notBlank(config.get("group"))){
 			referenceConfig.setGroup(config.get("group"));
 		}
