@@ -17,21 +17,22 @@ import java.util.jar.JarFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import top.yujiaxin.jfinalplugin.dubbo.annotation.ReferenceService;
-import top.yujiaxin.jfinalplugin.dubbo.annotation.RpcService;
-import top.yujiaxin.jfinalplugin.dubbo.exception.RpcServiceReferenceException;
-
 import com.alibaba.dubbo.config.ApplicationConfig;
 import com.alibaba.dubbo.config.ProtocolConfig;
 import com.alibaba.dubbo.config.ProviderConfig;
 import com.alibaba.dubbo.config.ReferenceConfig;
 import com.alibaba.dubbo.config.RegistryConfig;
 import com.alibaba.dubbo.config.ServiceConfig;
+import com.alibaba.dubbo.rpc.service.GenericService;
 import com.jfinal.aop.Enhancer;
 import com.jfinal.kit.JsonKit;
 import com.jfinal.kit.PathKit;
 import com.jfinal.kit.Prop;
 import com.jfinal.kit.StrKit;
+
+import top.yujiaxin.jfinalplugin.dubbo.annotation.ReferenceService;
+import top.yujiaxin.jfinalplugin.dubbo.annotation.RpcService;
+import top.yujiaxin.jfinalplugin.dubbo.exception.RpcServiceReferenceException;
 
 public class DubboRpc {
 	private static final Logger logger=LoggerFactory.getLogger(DubboRpc.class);
@@ -51,6 +52,8 @@ public class DubboRpc {
 	private static ProviderConfig providerConfig=new ProviderConfig();
 	
 	private static Boolean initLoad = false;
+	
+	private static ReferenceConfig<GenericService> genericReference = new ReferenceConfig<GenericService>();
 	
 	private DubboRpc(){};
 	
@@ -82,6 +85,14 @@ public class DubboRpc {
 		 if(StrKit.notBlank(prop.get("initLoad"))){
 			 initLoad =  prop.getBoolean("initLoad");
 		 }
+		 genericReference.setApplication(applicationConfig);
+		 genericReference.setRegistry(registryConfig);
+	}
+	
+	public static GenericService receiveService(String interfaceName,String group,String version){
+		genericReference.setInterface(interfaceName);
+		genericReference.setGeneric(true);
+		return genericReference.get();
 	}
 	
 	public static <T> T receiveService(Class<T> interfaceClass){

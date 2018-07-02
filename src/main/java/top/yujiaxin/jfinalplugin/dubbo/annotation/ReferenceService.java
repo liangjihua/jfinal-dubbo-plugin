@@ -13,7 +13,10 @@ import java.lang.annotation.Target;
 @Retention(RUNTIME)
 @Target({ FIELD, METHOD, ANNOTATION_TYPE })
 public @interface ReferenceService {
+	
 	Class<?> interfaceClass() default void.class;
+	
+	String interfaceName() default "";
 
 	String version() default "";
 
