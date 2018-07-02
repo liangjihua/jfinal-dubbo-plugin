@@ -36,11 +36,11 @@ import com.jfinal.kit.StrKit;
 public class DubboRpc {
 	private static final Logger logger=LoggerFactory.getLogger(DubboRpc.class);
 	
-	public static ApplicationConfig applicationConfig=new ApplicationConfig();
+	private static ApplicationConfig applicationConfig=new ApplicationConfig();
 	
-	public static RegistryConfig registryConfig=new RegistryConfig();
+	private static RegistryConfig registryConfig=new RegistryConfig();
 	
-	public static ProtocolConfig protocolConfig=new ProtocolConfig();
+	private static ProtocolConfig protocolConfig=new ProtocolConfig();
 	
 	private static Map<Object,Object> serviceCache=new HashMap<Object,Object>();
 	
@@ -48,7 +48,7 @@ public class DubboRpc {
 	
 	private static String dubbo_base_package = "";
 	
-	public static ProviderConfig providerConfig=new ProviderConfig();
+	private static ProviderConfig providerConfig=new ProviderConfig();
 	
 	private static Boolean initLoad = false;
 	
@@ -128,7 +128,7 @@ public class DubboRpc {
 		                if(referenceService==null)continue;
 		                String configKey = JsonKit.toJson(buildPara(referenceService)); 
 		                if(serviceCache.get(f.getType().getSimpleName()+":"+configKey) != null)continue;
-		    			ReferenceConfig<T> referenceConfig = buildServiceConfig(f.getType(), referenceService);
+		    			ReferenceConfig<T> referenceConfig = buildReferenceConfig(f.getType(), referenceService);
 		    			T service=referenceConfig.get();
 		    			if(service==null){
 		    				logger.error("Did not get rpc service：{}",f.getName());
@@ -379,7 +379,7 @@ public class DubboRpc {
 		return config;
 	}
 	
-	public static <T> ReferenceConfig<T> buildServiceConfig(Class<?> cl,
+	public static <T> ReferenceConfig<T> buildReferenceConfig(Class<?> cl,
 			ReferenceService referenceService)
 			throws InstantiationException, IllegalAccessException {
 		ReferenceConfig<T> referenceConfig=new ReferenceConfig<T>();
