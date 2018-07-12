@@ -22,6 +22,7 @@ import top.yujiaxin.jfinalplugin.dubbo.annotation.RpcService;
 import top.yujiaxin.jfinalplugin.dubbo.exception.RpcServiceReferenceException;
 
 import com.alibaba.dubbo.config.ApplicationConfig;
+import com.alibaba.dubbo.config.ConsumerConfig;
 import com.alibaba.dubbo.config.ProtocolConfig;
 import com.alibaba.dubbo.config.ProviderConfig;
 import com.alibaba.dubbo.config.ReferenceConfig;
@@ -51,6 +52,8 @@ public class DubboRpc {
 	private static ProviderConfig providerConfig=new ProviderConfig();
 	
 	private static Boolean initLoad = false;
+	
+	private static Prop config;
 	
 	private DubboRpc(){};
 	
@@ -82,6 +85,7 @@ public class DubboRpc {
 		 if(StrKit.notBlank(prop.get("initLoad"))){
 			 initLoad =  prop.getBoolean("initLoad");
 		 }
+		 config=prop;
 	}
 	
 	public static <T> T receiveService(Class<T> interfaceClass){
@@ -153,12 +157,122 @@ public class DubboRpc {
 		}
 		
 	}
+	
+	public static ConsumerConfig buildConsumerConfig(){
+		ConsumerConfig consumerConfig=new ConsumerConfig();
+		if (StrKit.notBlank(config.get("dubbo.consumer.actives"))) {
+			consumerConfig.setActives(config.getInt("dubbo.consumer.actives"));
+		}
+		consumerConfig.setApplication(applicationConfig);
+		if (StrKit.notBlank(config.get("dubbo.consumer.async"))) {
+			consumerConfig.setAsync(config.getBoolean("dubbo.consumer.async"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.cache"))) {
+			consumerConfig.setCache(config.get("dubbo.consumer.cache"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.callbacks"))) {
+			consumerConfig.setCallbacks(config.getInt("dubbo.consumer.callbacks"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.check"))) {
+			consumerConfig.setCheck(config.getBoolean("dubbo.consumer.check"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.client"))) {
+			consumerConfig.setClient(config.get("dubbo.consumer.client"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.cluster"))) {
+			consumerConfig.setCluster(config.get("dubbo.consumer.cluster"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.connections"))) {
+			consumerConfig.setConnections(config.getInt("dubbo.consumer.connections"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.isDefault"))) {
+			consumerConfig.setDefault(config.getBoolean("dubbo.consumer.isDefault"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.filter"))) {
+			consumerConfig.setFilter(config.get("dubbo.consumer.filter"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.generic"))) {
+			consumerConfig.setGeneric(config.get("dubbo.consumer.generic"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.group"))) {
+			consumerConfig.setGroup(config.get("dubbo.consumer.group"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.id"))) {
+			consumerConfig.setId(config.get("dubbo.consumer.id"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.init"))) {
+			consumerConfig.setInit(config.getBoolean("dubbo.consumer.init"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.layer"))) {
+			consumerConfig.setLayer(config.get("dubbo.consumer.layer"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.lazy"))) {
+			consumerConfig.setLazy(config.getBoolean("dubbo.consumer.lazy"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.listener"))) {
+			consumerConfig.setListener(config.get("dubbo.consumer.listener"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.loadbalance"))) {
+			consumerConfig.setLoadbalance(config.get("dubbo.consumer.loadbalance"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.merger"))) {
+			consumerConfig.setMerger(config.get("dubbo.consumer.merger"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.mock"))) {
+			consumerConfig.setMock(config.get("dubbo.consumer.mock"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.monitor"))) {
+			consumerConfig.setMonitor(config.get("dubbo.consumer.monitor"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.onconnect"))) {
+			consumerConfig.setOnconnect(config.get("dubbo.consumer.onconnect"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.ondisconnect"))) {
+			consumerConfig.setOndisconnect(config.get("dubbo.consumer.ondisconnect"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.owner"))) {
+			consumerConfig.setOwner(config.get("dubbo.consumer.owner"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.proxy"))) {
+			consumerConfig.setProxy(config.get("dubbo.consumer.proxy"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.reconnect"))) {
+			consumerConfig.setReconnect(config.get("dubbo.consumer.reconnect"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.retries"))) {
+			consumerConfig.setRetries(config.getInt("dubbo.consumer.retries"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.scope"))) {
+			consumerConfig.setScope(config.get("dubbo.consumer.scope"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.sent"))) {
+			consumerConfig.setSent(config.getBoolean("dubbo.consumer.sent"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.sticky"))) {
+			consumerConfig.setSticky(config.getBoolean("dubbo.consumer.sticky"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.stub"))) {
+			consumerConfig.setStub(config.get("dubbo.consumer.stub"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.timeout"))) {
+			consumerConfig.setTimeout(config.getInt("dubbo.consumer.timeout"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.validation"))) {
+			consumerConfig.setValidation(config.get("dubbo.consumer.validation"));
+		}
+		if (StrKit.notBlank(config.get("dubbo.consumer.version"))) {
+			consumerConfig.setVersion(config.get("dubbo.consumer.version"));
+		}
+		return consumerConfig;
+	}
+	
 
 	public static <T> ReferenceConfig<T> buildReferenceConfig(Class<T> interfaceClass, Map<String, String> config) {
 		ReferenceConfig<T> referenceConfig=new ReferenceConfig<T>();
 		referenceConfig.setApplication(applicationConfig);
 		referenceConfig.setRegistry(registryConfig);
 		referenceConfig.setInterface(interfaceClass);
+		referenceConfig.setConsumer(buildConsumerConfig());
 		if(StrKit.notBlank(config.get("interfaceName"))){
 			referenceConfig.setInterface(config.get("interfaceName"));
 		}
