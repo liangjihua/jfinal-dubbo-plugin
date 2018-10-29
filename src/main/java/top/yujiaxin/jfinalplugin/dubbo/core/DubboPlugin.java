@@ -22,7 +22,7 @@ public class DubboPlugin implements IPlugin {
 		if(StrKit.notBlank(fileName)){
 			prop=PropKit.use(fileName);
 		}else{
-			prop=PropKit.use("jfinal.properties");
+			prop=getDefalutProp();
 		}
 	}
 	
@@ -31,7 +31,11 @@ public class DubboPlugin implements IPlugin {
 	}
 	
 	public DubboPlugin(){
-		prop=PropKit.use("jfinal.properties");
+		prop=getDefalutProp();
+	}
+	
+	private Prop getDefalutProp(){
+		return PropKit.use("jfinal.properties");
 	}
 	
 	@Override
@@ -48,7 +52,7 @@ public class DubboPlugin implements IPlugin {
 		 
 		 DubboRpc.init(prop);
 		 try {
-			DubboRpc.exportServices();
+			DubboRpc.scanRpcServices();
 			return true;
 		} catch (ClassNotFoundException e) {
 			//TODO 异常处理

@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,13 +42,13 @@ public class DubboRpc {
 	
 	private static ProtocolConfig protocolConfig=new ProtocolConfig();
 	
+	private static ProviderConfig providerConfig=new ProviderConfig();
+	
 	private static Map<Object,Object> serviceCache=new HashMap<Object,Object>();
 	
 	private static String classPath=PathKit.getRootClassPath();
 	
 	private static String dubbo_base_package = "";
-	
-	private static ProviderConfig providerConfig=new ProviderConfig();
 	
 	private static Boolean initLoad = false;
 	
@@ -103,9 +102,7 @@ public class DubboRpc {
 	public static <T> T receiveService(Class<T> interfaceClass,Map<String,String> config) {
 		String configKey = JsonKit.toJson(config);
 		T service=(T) serviceCache.get(interfaceClass.getSimpleName()+":"+configKey);
-		if(service!=null){
-			return service;
-		}
+		if(service!=null)return service;
 		ReferenceConfig<T> referenceConfig = buildReferenceConfig(interfaceClass, config);
 		service=referenceConfig.get();
 		if(service==null){
@@ -116,46 +113,39 @@ public class DubboRpc {
 		return service;
 	}
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static <T> void exportServices() throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException{
+	@SuppressWarnings({ "rawtypes" })
+	public static <T> void scanRpcServices() throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException{
 		List<Class> classList=new ArrayList<Class>();
 		scanClass(classList, classPath);
 		for (Class cl : classList) {
-			if (cl.isInterface() || Modifier.isAbstract(cl.getModifiers())) {
-                continue;
-            }
-			if(initLoad){
-				Field[] fields = cl.getDeclaredFields();  
-		        for(Field f : fields){  
-		            if(f.getName().endsWith("Service")){  
-		                ReferenceService referenceService=(ReferenceService) f.getAnnotation(ReferenceService.class);
-		                if(referenceService==null)continue;
-		                String configKey = JsonKit.toJson(buildPara(referenceService)); 
-		                if(serviceCache.get(f.getType().getSimpleName()+":"+configKey) != null)continue;
-		    			ReferenceConfig<T> referenceConfig = buildReferenceConfig(f.getType(), referenceService);
-		    			T service=referenceConfig.get();
-		    			if(service==null){
-		    				logger.error("Did not get rpc service：{}",f.getName());
-		    				throw new RpcServiceReferenceException("Did not get rpc:"+f.getName());
-		    			}
-		    			serviceCache.put(f.getType().getSimpleName()+":"+configKey, service);
-		            }  
-		        }
-			}
-			RpcService rpcService=(RpcService) cl.getAnnotation(RpcService.class);
-			if(rpcService==null)continue;
-			Class[] interfaces = cl.getInterfaces();
-			if(interfaces==null||!(interfaces.length>0)){
-				logger.error("RpcService must implements a interface");
-				throw new RpcServiceReferenceException("RpcService must implements a interface");
-			}
-			for (Class in : interfaces) {
-				ServiceConfig<T> service = buildServiceConfig(cl, rpcService, in);
-				service.setProvider(providerConfig);
-				service.export();
-			}
+			if (cl.isInterface() || Modifier.isAbstract(cl.getModifiers()))continue;
+			exportService(cl);
+			if(initLoad)loadReferenceServices(cl);
 		}
-		
+	}
+	
+	private static <T> void exportService(Class<?> cl) throws InstantiationException, IllegalAccessException{
+		RpcService rpcService=(RpcService) cl.getAnnotation(RpcService.class);
+		if(rpcService==null)return;
+		Class<?>[] interfaces = cl.getInterfaces();
+		if(interfaces==null||!(interfaces.length>0)){
+			logger.error("RpcService must implements a interface");
+			throw new RpcServiceReferenceException("RpcService must implements a interface");
+		}
+		for (Class<?> in : interfaces) {
+			ServiceConfig<T> service = buildServiceConfig(cl, rpcService, in);
+			service.setProvider(providerConfig);
+			service.export();
+		}
+	}
+	
+	private static <T> void loadReferenceServices(Class<?> cl) throws InstantiationException, IllegalAccessException{
+		Field[] fields = cl.getDeclaredFields();
+        for(Field f : fields){
+            ReferenceService referenceService=(ReferenceService) f.getAnnotation(ReferenceService.class);
+            if(referenceService==null)continue;
+            receiveService(f.getType(), buildPara(referenceService));
+        }
 	}
 	
 	public static ConsumerConfig buildConsumerConfig(){
@@ -267,7 +257,7 @@ public class DubboRpc {
 	}
 	
 
-	public static <T> ReferenceConfig<T> buildReferenceConfig(Class<T> interfaceClass, Map<String, String> config) {
+	public static <T> ReferenceConfig<T> buildReferenceConfig(Class<?> interfaceClass, Map<String, String> config) {
 		ReferenceConfig<T> referenceConfig=new ReferenceConfig<T>();
 		referenceConfig.setApplication(applicationConfig);
 		referenceConfig.setRegistry(registryConfig);
@@ -439,28 +429,22 @@ public class DubboRpc {
 				}
 			}
 		}
-		
 		Enumeration<URL> urlEnumeration = Thread.currentThread().getContextClassLoader().getResources(dubbo_base_package.replace(".", "/"));
         while (urlEnumeration.hasMoreElements()) {
             URL url = urlEnumeration.nextElement();
-            String protocol = url.getProtocol();//大概是jar
-            if ("jar".equalsIgnoreCase(protocol)) {
+            if ("jar".equalsIgnoreCase(url.getProtocol())) {
                 //转换为JarURLConnection
                 JarURLConnection connection = (JarURLConnection) url.openConnection();
-                if (connection != null) {
-                    JarFile jarFile = connection.getJarFile();
-                    if (jarFile != null) {
-                        //得到该jar文件下面的类实体
-                        Enumeration<JarEntry> jarEntryEnumeration = jarFile.entries();
-                        while (jarEntryEnumeration.hasMoreElements()) {
-                            JarEntry entry = jarEntryEnumeration.nextElement();
-                            String jarEntryName = entry.getName();
-                            //这里我们需要过滤不是class文件和不在basePack包名下的类
-                            if (jarEntryName.contains(".class") && jarEntryName.replaceAll("/",".").startsWith(dubbo_base_package)) {
-                                String className = jarEntryName.substring(0, jarEntryName.lastIndexOf(".")).replace("/", ".");
-                                classList.add(Class.forName(className));
-                            }
-                        }
+                if (connection == null) return;
+                if (connection.getJarFile() == null) return;
+                //得到该jar文件下面的类实体
+                Enumeration<JarEntry> jarEntryEnumeration = connection.getJarFile().entries();
+                while (jarEntryEnumeration.hasMoreElements()) {
+                    String jarEntryName = jarEntryEnumeration.nextElement().getName();
+                    //这里我们需要过滤不是class文件和不在basePack包名下的类
+                    if (jarEntryName.contains(".class") && jarEntryName.replaceAll("/",".").startsWith(dubbo_base_package)) {
+                        String className = jarEntryName.substring(0, jarEntryName.lastIndexOf(".")).replace("/", ".");
+                        classList.add(Class.forName(className));
                     }
                 }
             }
@@ -495,78 +479,4 @@ public class DubboRpc {
 		config.put("protocol", reService.protocol());
 		return config;
 	}
-	
-	public static <T> ReferenceConfig<T> buildReferenceConfig(Class<?> cl,
-			ReferenceService referenceService)
-			throws InstantiationException, IllegalAccessException {
-		ReferenceConfig<T> referenceConfig=new ReferenceConfig<T>();
-		referenceConfig.setApplication(applicationConfig);
-		referenceConfig.setRegistry(registryConfig);
-		referenceConfig.setInterface(cl);
-		if(StrKit.notBlank(referenceService.group())){
-			referenceConfig.setGroup(referenceService.group());
-		}
-		if(StrKit.notBlank(referenceService.version())){
-			referenceConfig.setVersion(referenceService.version());
-		}
-		if(StrKit.notBlank(referenceService.cache())){
-			referenceConfig.setCache(referenceService.cache());
-		}
-		if(StrKit.notBlank(String.valueOf(referenceService.check()))){
-			referenceConfig.setCheck(Boolean.valueOf(referenceService.check()));
-		}
-		if(StrKit.notBlank(String.valueOf(referenceService.retries()))){
-			referenceConfig.setRetries(Integer.valueOf(referenceService.retries()));
-		}
-		if(StrKit.notBlank(referenceService.stub())){
-			referenceConfig.setStub(referenceService.stub());
-		}
-		if(StrKit.notBlank(referenceService.mock())){
-			referenceConfig.setMock(referenceService.mock());
-		}
-		if(StrKit.notBlank(String.valueOf(referenceService.timeout()))){
-			referenceConfig.setTimeout(Integer.valueOf(referenceService.timeout()));
-		}
-		if(StrKit.notBlank(String.valueOf(referenceService.connections()))){
-			referenceConfig.setConnections(Integer.valueOf(referenceService.connections()));
-		}
-		if(StrKit.notBlank(String.valueOf(referenceService.async()))){
-			referenceConfig.setAsync(Boolean.valueOf(referenceService.async()));
-		}
-		if(StrKit.notBlank(String.valueOf(referenceService.generic()))){
-			referenceConfig.setGeneric(referenceService.generic());
-		}
-		if(StrKit.notBlank(referenceService.url())){
-			referenceConfig.setUrl(referenceService.url());
-		}
-		if(StrKit.notBlank(referenceService.proxy())){
-			referenceConfig.setProxy(referenceService.proxy());
-		}
-		if(StrKit.notBlank(referenceService.client())){
-			referenceConfig.setClient(referenceService.client());
-		}
-		if(StrKit.notBlank(referenceService.owner())){
-			referenceConfig.setOwner(referenceService.owner());
-		}
-		if(StrKit.notBlank(String.valueOf(referenceService.actives()))){
-			referenceConfig.setActives(Integer.valueOf(referenceService.actives()));
-		}
-		if(StrKit.notBlank(referenceService.filter())){
-			referenceConfig.setFilter(referenceService.filter());
-		}
-		if(StrKit.notBlank(referenceService.listener())){
-			referenceConfig.setListener(referenceService.listener());
-		}
-		if(StrKit.notBlank(referenceService.layer())){
-			referenceConfig.setLayer(referenceService.layer());
-		}
-		if(StrKit.notBlank(String.valueOf(referenceService.init()))){
-			referenceConfig.setInit(Boolean.valueOf(referenceService.init()));
-		}
-		if(StrKit.notBlank(referenceService.protocol())){
-			referenceConfig.setProtocol(referenceService.protocol());
-		}
-		return referenceConfig;
-	}
-	
 }
