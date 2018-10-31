@@ -24,6 +24,14 @@ public class DubboRpcTest extends TestCase {
 		super.tearDown();
 	}
 
+	public void testScanRpcServices() throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException{
+		DubboRpc.scanRpcServices();
+		ReferenceConfig<DemoService> referenceConfig = DubboRpc.getDubboConfigsFactory().createReferenceConfig(DemoService.class,new HashMap<String,String>());
+		DemoService service=referenceConfig.get();
+		assertNotNull(service);
+		assertEquals("tom", service.getName());
+	}
+	
 	public void testReceiveService() throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException{
 		DubboRpc.scanRpcServices();
 		DemoService service=DubboRpc.receiveService(DemoService.class);
@@ -31,11 +39,5 @@ public class DubboRpcTest extends TestCase {
 		assertEquals("tom", service.getName());
 	}
 	
-	public void testScanRpcServices() throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException{
-		DubboRpc.scanRpcServices();
-		ReferenceConfig<DemoService> referenceConfig = DubboRpc.buildReferenceConfig(DemoService.class,new HashMap<String,String>());
-		DemoService service=referenceConfig.get();
-		assertNotNull(service);
-		assertEquals("tom", service.getName());
-	}
+	
 }
