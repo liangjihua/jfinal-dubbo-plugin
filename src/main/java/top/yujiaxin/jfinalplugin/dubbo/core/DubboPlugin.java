@@ -2,20 +2,24 @@ package top.yujiaxin.jfinalplugin.dubbo.core;
 
 import java.io.IOException;
 
+import org.apache.dubbo.config.DubboShutdownHook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import top.yujiaxin.jfinalplugin.dubbo.container.JfinalContainer;
 import top.yujiaxin.jfinalplugin.dubbo.exception.DubboConfigException;
 
-import com.alibaba.dubbo.config.ProtocolConfig;
 import com.jfinal.kit.Prop;
 import com.jfinal.kit.PropKit;
 import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.IPlugin;
 
 public class DubboPlugin implements IPlugin {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DubboPlugin.class);
 
 	private Prop prop;
 	/**
 	 * 使用无参构造，使用jfinal.properties作为你的配置文件名，可以更便捷的使用dubbo容器功能
-	 * @param fileName
+	 * @param fileName 指定dubbo配置文件的文件名
 	 */
 	@Deprecated
 	public DubboPlugin(String fileName){
@@ -54,26 +58,16 @@ public class DubboPlugin implements IPlugin {
 		 try {
 			DubboRpc.scanRpcServices();
 			return true;
-		} catch (ClassNotFoundException e) {
-			//TODO 异常处理
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			//TODO 异常处理
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			//TODO 异常处理
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO 异常处理
-			e.printStackTrace();
-		}
-		 return false;
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IOException e) {
+		     LOGGER.error("jfinal-dubbo-plugin startup failed", e);
+         }
+        return false;
 	}
 	
 	
 	@Override
 	public boolean stop() {
-		ProtocolConfig.destroyAll();
+        DubboShutdownHook.getDubboShutdownHook().start();
 		return true;
 	}
 }

@@ -11,53 +11,50 @@
   <url>http://maven.apache.org</url>
 
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+      <dubbo.version>2.7.5</dubbo.version>
+      <jfinal.version>4.8</jfinal.version>
+      <junit.version>4.13</junit.version>
+      <zookeeper.version>3.4.9</zookeeper.version>
+      <zkclient.version>0.1</zkclient.version>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>3.8.1</version>
+      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
     	<groupId>com.jfinal</groupId>
-    	<artifactId>jfinal-java8</artifactId>
-    	<version>3.4</version>
+    	<artifactId>jfinal</artifactId>
+    	<version>${jfinal.version}</version>
     </dependency>
     <dependency>
 	    <groupId>org.apache.zookeeper</groupId>
 	    <artifactId>zookeeper</artifactId>
-	    <version>3.4.9</version>
+	    <version>${zookeeper.version}</version>
 	</dependency>
 	<dependency>
 	    <groupId>com.github.sgroschupf</groupId>
 	    <artifactId>zkclient</artifactId>
-	    <version>0.1</version>
+	    <version>${zkclient.version}</version>
 	</dependency>
     <dependency>
-	    <groupId>com.alibaba</groupId>
+	    <groupId>org.apache.dubbo</groupId>
 	    <artifactId>dubbo</artifactId>
-	    <version>2.6.0</version>
-	    <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-web</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-beans</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-context</artifactId>
-                </exclusion>
-            </exclusions>
+	    <version>${dubbo.version}</version>
+        <exclusions>
+            <exclusion>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context</artifactId>
+            </exclusion>
+            <exclusion>
+                <groupId>com.alibaba.spring</groupId>
+                <artifactId>spring-context-support</artifactId>
+            </exclusion>
+        </exclusions>
 	</dependency>
   </dependencies>
   <build>
@@ -67,7 +64,7 @@
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
-					<encoding>utf8</encoding>
+					<encoding>${project.build.sourceEncoding}</encoding>
 				</configuration>
 			</plugin>
 		</plugins>

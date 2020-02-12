@@ -2,29 +2,23 @@ package top.yujiaxin.jfinalplugin.dubbo.support;
 
 import java.util.Map;
 
-import com.alibaba.dubbo.config.ApplicationConfig;
-import com.alibaba.dubbo.config.ConsumerConfig;
-import com.alibaba.dubbo.config.ProtocolConfig;
-import com.alibaba.dubbo.config.ProviderConfig;
-import com.alibaba.dubbo.config.ReferenceConfig;
-import com.alibaba.dubbo.config.RegistryConfig;
-import com.alibaba.dubbo.config.ServiceConfig;
 import com.jfinal.aop.Enhancer;
 import com.jfinal.kit.StrKit;
 
+import org.apache.dubbo.config.*;
 import top.yujiaxin.jfinalplugin.dubbo.annotation.RpcService;
 
 public class DubboConfigsFactory {
 	
-	private  ApplicationConfig applicationConfig=new ApplicationConfig();
+	private ApplicationConfig applicationConfig=new ApplicationConfig();
 	
-	private  RegistryConfig registryConfig=new RegistryConfig();
+	private RegistryConfig registryConfig=new RegistryConfig();
 	
-	private  ProtocolConfig protocolConfig=new ProtocolConfig();
+	private ProtocolConfig protocolConfig=new ProtocolConfig();
 	
-	private  ProviderConfig providerConfig=new ProviderConfig();
+	private ProviderConfig providerConfig=new ProviderConfig();
 	
-	private  ConsumerConfig consumerConfig=new ConsumerConfig();
+	private ConsumerConfig consumerConfig=new ConsumerConfig();
 	
 	public DubboConfigsFactory(String applicationName,String registryAddress,String protocolName) {
 		applicationConfig.setName(applicationName);
@@ -37,7 +31,7 @@ public class DubboConfigsFactory {
 	@SuppressWarnings("unchecked")
 	public <T> ServiceConfig<T> createServiceConfig(Class<?> cl, RpcService rpcService, Class<?> in)
 			throws InstantiationException, IllegalAccessException {
-		ServiceConfig<T> serviceConfig = new ServiceConfig<T>();
+		ServiceConfig<T> serviceConfig = new ServiceConfig<>();
 		serviceConfig.setApplication(applicationConfig);
 		serviceConfig.setRegistry(registryConfig);
 		serviceConfig.setProtocol(protocolConfig);
@@ -105,7 +99,7 @@ public class DubboConfigsFactory {
 	
 	
 	public <T> ReferenceConfig<T> createReferenceConfig(Class<?> interfaceClass, Map<String, String> config) {
-		ReferenceConfig<T> referenceConfig=new ReferenceConfig<T>();
+		ReferenceConfig<T> referenceConfig= new ReferenceConfig<>();
 		referenceConfig.setApplication(applicationConfig);
 		referenceConfig.setRegistry(registryConfig);
 		referenceConfig.setConsumer(consumerConfig);

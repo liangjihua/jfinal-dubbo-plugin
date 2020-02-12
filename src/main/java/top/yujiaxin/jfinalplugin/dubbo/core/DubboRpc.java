@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 
+import org.apache.dubbo.config.ReferenceConfig;
+import org.apache.dubbo.config.ServiceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,8 +24,6 @@ import top.yujiaxin.jfinalplugin.dubbo.annotation.RpcService;
 import top.yujiaxin.jfinalplugin.dubbo.exception.RpcServiceReferenceException;
 import top.yujiaxin.jfinalplugin.dubbo.support.DubboConfigsFactory;
 
-import com.alibaba.dubbo.config.ReferenceConfig;
-import com.alibaba.dubbo.config.ServiceConfig;
 import com.jfinal.kit.JsonKit;
 import com.jfinal.kit.PathKit;
 import com.jfinal.kit.Prop;
@@ -34,7 +34,7 @@ public class DubboRpc {
 	
 	private static DubboConfigsFactory dubboConfigsFactory;
 	
-	private static ConcurrentHashMap<Object, Object> servicesCache=new ConcurrentHashMap<Object, Object>();
+	private static ConcurrentHashMap<Object, Object> servicesCache= new ConcurrentHashMap<>();
 	
 	private static String classPath=PathKit.getRootClassPath();
 	
@@ -42,7 +42,7 @@ public class DubboRpc {
 	
 	private static Boolean initLoad = false;
 	
-	private DubboRpc(){};
+	private DubboRpc(){}
 	
 	public static void init(Prop prop) { 
 		dubboConfigsFactory=new DubboConfigsFactory(prop.get("dubbo.application.name"),prop.get("dubbo.registry.address"),prop.get("dubbo.protocol.name"));
@@ -62,7 +62,7 @@ public class DubboRpc {
 	
 	@SuppressWarnings({ "rawtypes" })
 	public static <T> void scanRpcServices() throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException{
-		List<Class> classList=new ArrayList<Class>();
+		List<Class> classList= new ArrayList<>();
 		scanClass(classList, classPath);
 		for (Class cl : classList) {
 			if (cl.isInterface() || Modifier.isAbstract(cl.getModifiers()))continue;
@@ -72,7 +72,7 @@ public class DubboRpc {
 	}
 	
 	private static <T> void exportService(Class<?> cl) throws InstantiationException, IllegalAccessException{
-		RpcService rpcService=(RpcService) cl.getAnnotation(RpcService.class);
+		RpcService rpcService= cl.getAnnotation(RpcService.class);
 		if(rpcService==null)return;
 		Class<?>[] interfaces = cl.getInterfaces();
 		if(interfaces==null||!(interfaces.length>0)){
@@ -85,10 +85,10 @@ public class DubboRpc {
 		}
 	}
 	
-	private static <T> void loadReferenceServices(Class<?> cl) throws InstantiationException, IllegalAccessException{
+	private static <T> void loadReferenceServices(Class<?> cl) {
 		Field[] fields = cl.getDeclaredFields();
         for(Field f : fields){
-            ReferenceService referenceService=(ReferenceService) f.getAnnotation(ReferenceService.class);
+            ReferenceService referenceService= f.getAnnotation(ReferenceService.class);
             if(referenceService==null)continue;
             receiveService(f.getType(), buildPara(referenceService));
         }
@@ -99,7 +99,7 @@ public class DubboRpc {
 	}
 	
 	public static <T> T receiveService(Class<T> interfaceClass,String group,String version){
-		Map<String,String> config=new HashMap<String,String>();
+		Map<String,String> config= new HashMap<>();
 		config.put("group", group);
 		config.put("version", version);
 		return receiveService(interfaceClass, config);
@@ -159,7 +159,7 @@ public class DubboRpc {
 	}
 	
 	public static Map<String,String> buildPara(ReferenceService reService) {
-		Map<String,String> config=new HashMap<String,String>();
+		Map<String,String> config= new HashMap<>();
 		config.put("version", reService.version());
 		config.put("group", reService.group());
 		config.put("retries",String.valueOf(reService.retries()));

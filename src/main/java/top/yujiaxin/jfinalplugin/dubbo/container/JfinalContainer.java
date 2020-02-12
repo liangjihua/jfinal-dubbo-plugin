@@ -1,9 +1,9 @@
 package top.yujiaxin.jfinalplugin.dubbo.container;
 
+import org.apache.dubbo.container.Container;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.dubbo.container.Container;
 import com.jfinal.config.Constants;
 import com.jfinal.config.Interceptors;
 import com.jfinal.config.JFinalConfig;
@@ -11,7 +11,7 @@ import com.jfinal.config.Plugins;
 import com.jfinal.kit.PropKit;
 
 public class JfinalContainer implements Container {
-	private static final Logger logger=LoggerFactory.getLogger(JfinalContainer.class);
+	private static final Logger logger = LoggerFactory.getLogger(JfinalContainer.class);
 	private Constants constants = new Constants();
 	private Plugins plugins = new Plugins();
 	private Interceptors interceptors = new Interceptors();
@@ -22,17 +22,17 @@ public class JfinalContainer implements Container {
 		jfianlConfig.configPlugin(plugins);
 		startPulgins();
 		jfianlConfig.configInterceptor(interceptors);
-		jfianlConfig.afterJFinalStart();
+		jfianlConfig.onStart();
 
 	}
 
 	@Override
 	public void stop() {
-		jfianlConfig.beforeJFinalStop();
+		jfianlConfig.onStop();
 		stopPulgins();
 	}
-	private  void startPulgins(){
-		plugins.getPluginList().stream().forEach(plugin->{
+	private void startPulgins(){
+		plugins.getPluginList().forEach(plugin->{
 			try {
 				// process ActiveRecordPlugin devMode
 				if (plugin instanceof com.jfinal.plugin.activerecord.ActiveRecordPlugin) {
@@ -41,7 +41,7 @@ public class JfinalContainer implements Container {
 						arp.setDevMode(constants.getDevMode());
 					}
 				}
-				if (plugin.start() == false) {
+				if (!plugin.start()) {
 					String message = "Plugin start error: " + plugin.getClass().getName();
 					logger.error(message);
 					throw new RuntimeException(message);
@@ -57,7 +57,7 @@ public class JfinalContainer implements Container {
 	}
 	
 	private void stopPulgins(){
-		plugins.getPluginList().stream().forEach(plugin->{
+		plugins.getPluginList().forEach(plugin->{
 			try {
 				plugin.stop();
 			} catch (Exception e) {
@@ -68,7 +68,7 @@ public class JfinalContainer implements Container {
 		});
 	}
 	private static JFinalConfig getJfinalConfig(){
-		JFinalConfig config=null;;
+		JFinalConfig config=null;
 		try {
 			config = (JFinalConfig)Class.forName(PropKit.use("jfinal.properties").get("configClass")).newInstance();
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {

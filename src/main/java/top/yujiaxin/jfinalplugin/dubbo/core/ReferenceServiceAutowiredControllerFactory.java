@@ -11,11 +11,7 @@ import top.yujiaxin.jfinalplugin.dubbo.annotation.ReferenceService;
 
 public class ReferenceServiceAutowiredControllerFactory extends ControllerFactory {
 	
-	private ThreadLocal<Map<Class<? extends Controller>, Controller>> buffers = new ThreadLocal<Map<Class<? extends Controller>, Controller>>() {
-		protected Map<Class<? extends Controller>, Controller> initialValue() {
-			return new HashMap<Class<? extends Controller>, Controller>();
-		}
-	};
+	private ThreadLocal<Map<Class<? extends Controller>, Controller>> buffers = ThreadLocal.withInitial(HashMap::new);
 	@Override
 	public Controller getController(Class<? extends Controller> controllerClass)
 			throws InstantiationException, IllegalAccessException {
