@@ -4,11 +4,11 @@ package top.yujiaxin.jfinalplugin.dubbo;
 import java.io.IOException;
 import java.util.HashMap;
 
-import com.alibaba.dubbo.config.ReferenceConfig;
 import com.jfinal.kit.Prop;
 import com.jfinal.kit.PropKit;
 
 import junit.framework.TestCase;
+import org.apache.dubbo.config.ReferenceConfig;
 import top.yujiaxin.jfinalplugin.dubbo.core.DubboRpc;
 import top.yujiaxin.jfinalplugin.dubbo.support.DemoService;
 
@@ -16,7 +16,7 @@ public class DubboRpcTest extends TestCase {
 
 	private static Prop prop=PropKit.use("jfinal.properties");
 	
-	protected void setUp() throws Exception {
+	protected void setUp() {
 		DubboRpc.init(prop);
 	}
 
@@ -26,7 +26,7 @@ public class DubboRpcTest extends TestCase {
 
 	public void testScanRpcServices() throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException{
 		DubboRpc.scanRpcServices();
-		ReferenceConfig<DemoService> referenceConfig = DubboRpc.getDubboConfigsFactory().createReferenceConfig(DemoService.class,new HashMap<String,String>());
+		ReferenceConfig<DemoService> referenceConfig = DubboRpc.getDubboConfigsFactory().createReferenceConfig(DemoService.class,new HashMap<>());
 		DemoService service=referenceConfig.get();
 		assertNotNull(service);
 		assertEquals("tom", service.getName());
