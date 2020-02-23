@@ -14,7 +14,7 @@
       <dubbo.version>2.7.5</dubbo.version>
       <jfinal.version>4.8</jfinal.version>
       <junit.version>3.8</junit.version>
-      <zookeeper.version>3.4.9</zookeeper.version>
+      <zookeeper.version>3.4.14</zookeeper.version>
       <zkclient.version>0.1</zkclient.version>
   </properties>
 
