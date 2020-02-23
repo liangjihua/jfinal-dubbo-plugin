@@ -5,8 +5,7 @@
 
 #### 安装教程
 
-从https://gitee.com/YouYiGeXinShou/jfinal-dubbo-plugin/ 克隆或下载源码包
-运行maven clean install
+克隆或下载源码包 运行maven clean install
 
 #### 使用说明
 1.引入jar
