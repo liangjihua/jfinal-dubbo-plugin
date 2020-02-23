@@ -1,0 +1,5 @@
+dubbo.config-center.address=zookeeper://127.0.0.1:2181
+dubbo.application.name=test
+dubbo.protocol.name=dubbo
+dubbo.protocol.port=20880
+dubbo.jfinal.config-class=com.my.JfinalConfig

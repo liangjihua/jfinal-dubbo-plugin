@@ -7,7 +7,7 @@ import java.util.Map;
 import com.jfinal.core.Controller;
 import com.jfinal.core.ControllerFactory;
 
-import top.yujiaxin.jfinalplugin.dubbo.annotation.ReferenceService;
+import org.apache.dubbo.config.annotation.Reference;
 
 public class ReferenceServiceAutowiredControllerFactory extends ControllerFactory {
 	
@@ -26,12 +26,11 @@ public class ReferenceServiceAutowiredControllerFactory extends ControllerFactor
 	private void inject(Controller ret) throws IllegalAccessException {
 		Field[] fields=ret.getClass().getDeclaredFields();
 		for (Field field : fields) {
-			if(field.isAnnotationPresent(ReferenceService.class)){
-				ReferenceService reService=field.getAnnotation(ReferenceService.class);
-				Map<String,String> config=DubboRpc.buildPara(reService);
-				field.setAccessible(true);
-				field.set(ret, DubboRpc.receiveService(field.getType(), config));
-			}
+			if(field.isAnnotationPresent(Reference.class)){
+			    Reference reference = field.getAnnotation(Reference.class);
+			    field.setAccessible(true);
+			    field.set(ret, DubboRpc.receiveService(field.getType()));
+            }
 		}
 	}
 	
